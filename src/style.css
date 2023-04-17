@@ -9,3 +9,8 @@ body,
     height: 100%;
     background: ivory;
 }
+
+@font-face {
+    font-family: "tintin";
+    src: local("tintin"), url("/fonts/tintin.ttf");
+}
