@@ -1,20 +1,25 @@
-import { Box, CameraShake, GizmoHelper, GizmoViewport, OrbitControls, Plane, Sky, Stars, Torus, useGLTF } from '@react-three/drei'
+import { Box, CameraControls, CameraShake, GizmoHelper, GizmoViewport, OrbitControls, Plane, Sky, Stars, Torus, useGLTF } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Debug, Physics, RigidBody } from '@react-three/rapier'
 import { Perf } from 'r3f-perf'
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Ground from './Ground'
 import Rocket from './Rocket'
 import Title from './Title'
+import * as THREE from 'three'
 
-export default function Experience() {
+export default function Experience({ isCountDown, starTimer }) {
 
-    const [hasTakenOff, setHasTakenOff] = useState(false)
     const [startTime, setStartTime] = useState(0)
-    const [rocketAudio] = useState(() => new Audio('/rocket.mp3'))
-    const [countDownAudio] = useState(() => new Audio('/countdown.m4a'))
+    const [rocketAudio] = useState(() => new Audio('/sounds/rocket.mp3'))
+    const [countDownAudio] = useState(() => new Audio('/sounds/countdown.m4a'))
+    const [isTakingOff, setIsTakingOff] = useState(false)
 
     const rocketRef = useRef()
+    const cameraControlRef = useRef(null);
+
+    const dayColor = new THREE.Color(0x7BBEE8);
+    const nightColor = new THREE.Color(0x000000);
 
     // Parameters
     const maxAccel = 2; // Maximum acceleration in m/s^2
@@ -22,22 +27,21 @@ export default function Experience() {
     const timeShift = 7; // Time in seconds when the maximum acceleration occurs
 
     const startRocket = () => {
-        console.log("Count down!")
+        setTimeout(() => {
+            starTimer()
+        }, 800)
         countDownAudio.currentTime = 0
         countDownAudio.volume = 0.5
         countDownAudio.play()
 
         setTimeout(() => {
-            console.log("Landing soon!")
-            setHasTakenOff(true)
             rocketAudio.currentTime = 0
             rocketAudio.volume = 0.25
             rocketAudio.play()
         }, 8000)
 
         setTimeout(() => {
-            console.log("Landing starting!")
-            setHasTakenOff(true)
+            setIsTakingOff(true)
         }, 9000)
     }
 
@@ -45,14 +49,28 @@ export default function Experience() {
         return maxAccel / (1 + Math.exp(-steepness * (time - timeShift)));
     }
 
-    useFrame(({ camera, clock }) => {
-        if (hasTakenOff && !startTime) {
+    useEffect(() => {
+        const cameraTranslate = async () => {
+            await cameraControlRef.current.setLookAt(7, 6, 8, -3, 0, 0, true)
+            startRocket()
+        }
+
+        if (isCountDown) {
+            cameraTranslate()
+        }
+    }, [isCountDown])
+
+    useFrame(({ camera, clock, scene }) => {
+
+        if (isCountDown) {
+            scene.background.lerp(nightColor, 0.05);
+        }
+
+        if (isTakingOff && !startTime) {
             setStartTime(clock.getElapsedTime())
         }
 
-        if (hasTakenOff && startTime) {
-            console.log("startTime", startTime)
-            console.log("clock.getElapsedTime()", clock.getElapsedTime())
+        if (isTakingOff && startTime) {
             const time = clock.getElapsedTime() - startTime
             const currentVelocity = rocketRef.current.linvel().y
             const acc = acceleration(time, maxAccel, steepness, timeShift);
@@ -60,14 +78,7 @@ export default function Experience() {
             rocketRef.current.setLinvel({ x: 0, y: newVelocity, z: 0 })
 
             camera.position.y = rocketRef.current.translation().y + 6
-            // camera.lookAt( new THREE.Vector3(rocketRef.current.translation()))
-
-            // if (clock.getElapsedTime() - startTime > 5 && camera.position.z < 35) {
-            //     camera.position.z += rocketRef.current.translation().z + 0.01
-            // }
         }
-
-
     })
 
 
@@ -78,30 +89,38 @@ export default function Experience() {
             margin={[80, 80]} // widget margins (X, Y)
         >
             <GizmoViewport axisColors={['red', 'green', 'blue']} labelColor="black" />
-            {/* alternative: <GizmoViewcube /> */}
         </GizmoHelper>
 
-        <Perf position="top-left" />
+        {/* <Perf position="top-left" /> */}
 
-        <OrbitControls />
+        <CameraControls makeDefault
+            fov={60}
+            near={0.1}
+            far={200}
+            smoothTime={1}
+            ref={cameraControlRef}
+        />
 
         <Title />
 
-        {hasTakenOff &&
-            <CameraShake maxYaw={0.02} yawFrequency={10} maxPitch={0} maxRoll={0} intensity={0.5} />}
+        {isTakingOff &&
+            <CameraShake maxYaw={0.02} yawFrequency={12} maxPitch={0} maxRoll={0} intensity={0.6} />
+        }
+
+        {isCountDown &&
+            <Stars radius={100} depth={20} count={10000} factor={1} saturation={0} fade speed={1} />
+        }
 
         <directionalLight castShadow position={[-1, 2, 3]} intensity={1} />
         <ambientLight intensity={0.1} />
 
-        <color attach="background" args={['#000']} />
-        <Stars radius={100} depth={20} count={10000} factor={1} saturation={0} fade speed={1} />
+        <color attach="background" args={[0x7BBEE8]} />
 
         <Physics timeStep="vary">
             {/* <Debug /> */}
-
             <Ground />
             <RigidBody ref={rocketRef} colliders="cuboid" scale={0.3}>
-                <Rocket onClick={startRocket} />
+                <Rocket />
             </RigidBody>
         </Physics>
 

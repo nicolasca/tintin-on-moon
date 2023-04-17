@@ -1,10 +1,10 @@
 import { Center, Text3D, TransformControls } from "@react-three/drei";
-import { useControls } from "leva";
+import { useControls, Leva } from "leva";
 
 export default function Title() {
   const controls = useControls("Title", {
     size: {
-      value: 1.5,
+      value: 0.6,
       min: 0.1,
       max: 5,
       step: 0.01,
@@ -20,28 +20,38 @@ export default function Title() {
     bevelSize: 0.01,
     bevelOffset: 0,
     bevelSegments: 10,
-    color: "white",
+    color: "#ffff",
   });
+
+  const text = `
+      TINTIN
+          *
+  OBJECTIF LUNE
+  `
+
+
 
   return (
     <>
-      <Center position-y={5}>
+      <Leva hidden />
+      <Center top left position-y={5}>
         <Text3D
           size={controls.size}
-          font={"/tintin-font.json"}
+          font={"/fonts/tintin-bold.json"}
           curveSegments={controls.curveSegments}
           bevelEnabled={controls.bevelEnabled}
           bevelThickness={controls.bevelThickness}
           bevelSize={controls.bevelSize}
           bevelOffset={controls.bevelOffset}
           bevelSegments={controls.bevelSegments}
+          letterSpacing={0.2}
+          
         >
-          TINTIN \n
-          OBJECTIF LUNE
+          {text}
           <meshStandardMaterial
             color={controls.color}
-            metalness={0.9}
-            roughness={0.1}
+            metalness={0.2}
+            roughness={0.9}
           />
         </Text3D>
       </Center>

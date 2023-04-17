@@ -4,7 +4,7 @@ import { RigidBody } from "@react-three/rapier";
 
 useTexture.preload('/ground/sand-ao.jpg')
 useTexture.preload('/ground/sand-height.jpg')
-useTexture.preload('/sand-normal.jpg')
+useTexture.preload('/ground/sand-normal.jpg')
 useTexture.preload('/ground/sand-rough.jpg')
 
 export default function Ground() {
