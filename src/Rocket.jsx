@@ -48,6 +48,7 @@ export default function Rocket(props) {
           position={[0.02, 1.58, -1.52]}
           rotation={[-0.56, Math.PI / 2, 0]}
         />
+        
         <group name="Cube" position={[0, -8.54, 0]} scale={[0.89, 1, 0.89]}>
           <mesh
             name="Cube001_1"
@@ -56,6 +57,7 @@ export default function Rocket(props) {
             geometry={nodes.Cube001_1.geometry}
             material={materials.Red}
           />
+
           <mesh
             name="Cube001_2"
             castShadow

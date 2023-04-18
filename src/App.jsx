@@ -28,7 +28,7 @@ export default function App() {
         <Canvas
             shadows
             camera={{
-                position:[2, 2, 15]}}
+                position:[0, 5, 15]}}
         >
             <Experience isCountDown={isCountDown} starTimer={() => setTimeLeft(6)}/>
         </Canvas>

@@ -1,4 +1,4 @@
-import { Box, CameraControls, CameraShake, GizmoHelper, GizmoViewport, OrbitControls, Plane, Sky, Stars, Torus, useGLTF } from '@react-three/drei'
+import { Box, CameraControls, CameraShake, Cloud, GizmoHelper, GizmoViewport, Stars } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Debug, Physics, RigidBody } from '@react-three/rapier'
 import { Perf } from 'r3f-perf'
@@ -16,10 +16,12 @@ export default function Experience({ isCountDown, starTimer }) {
     const [isTakingOff, setIsTakingOff] = useState(false)
 
     const rocketRef = useRef()
-    const cameraControlRef = useRef(null);
+    const titleRef = useRef()
+    const cameraControlRef = useRef(null)
 
     const dayColor = new THREE.Color(0x7BBEE8);
     const nightColor = new THREE.Color(0x000000);
+
 
     // Parameters
     const maxAccel = 2; // Maximum acceleration in m/s^2
@@ -61,7 +63,6 @@ export default function Experience({ isCountDown, starTimer }) {
     }, [isCountDown])
 
     useFrame(({ camera, clock, scene }) => {
-
         if (isCountDown) {
             scene.background.lerp(nightColor, 0.05);
         }
@@ -98,10 +99,12 @@ export default function Experience({ isCountDown, starTimer }) {
             near={0.1}
             far={200}
             smoothTime={1}
+            maxPolarAngle={Math.PI / 2 - 0.2}
             ref={cameraControlRef}
         />
 
-        <Title />
+
+        <Title isCountingDown={isCountDown} />
 
         {isTakingOff &&
             <CameraShake maxYaw={0.02} yawFrequency={12} maxPitch={0} maxRoll={0} intensity={0.6} />
@@ -115,12 +118,24 @@ export default function Experience({ isCountDown, starTimer }) {
         <ambientLight intensity={0.1} />
 
         <color attach="background" args={[0x7BBEE8]} />
+        <fog attach="fog" args={[dayColor, 15, 40]} />
+
+        <Cloud position={[-1, 25, -5]} opacity={0.2} />
+        <Cloud position={[-5, 25, 5]} opacity={0.1} />
+        <Cloud position={[5, 40, -5]} speed={0.2} opacity={0.1} />
+        <Cloud position={[1, 40, 0]} speed={0.2} opacity={0.2} />
+        <Cloud position={[10, 55, -5]} opacity={0.2} />
+        <Cloud position={[-5, 55, 5]} opacity={0.1} />
+        <Cloud position={[0, 75, -5]} opacity={0.1} />
+
 
         <Physics timeStep="vary">
             {/* <Debug /> */}
             <Ground />
             <RigidBody ref={rocketRef} colliders="cuboid" scale={0.3}>
-                <Rocket />
+              
+                    <Rocket />
+              
             </RigidBody>
         </Physics>
 
