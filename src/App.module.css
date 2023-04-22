@@ -6,6 +6,21 @@
     display: flex;
     flex-direction: column;
     font-family: "tintin";
+    transform: none !important;
+    width: 200px;
+}
+
+.chooseTakeOff {
+    position: absolute;
+    z-index: 1;
+    display: flex;
+    margin: auto;
+    top: 50%;
+    left: 50%;
+    gap: 16px;
+    transform: translate(-50%, -50%);
+    flex-direction: column;
+    font-family: "tintin";
 }
 
 .counter {
@@ -24,4 +39,35 @@
 .buttonTakeOff:hover {
     cursor: pointer;
     background-color: rgba(0, 0, 0, 0.4);
+}
+
+.regularStyle {
+    font-size: 32px;
+    color: white;
+    background-color: #7BBEE8;
+}
+
+.acidStyle {
+    font-size: 32px;
+    animation: distort 400ms infinite;
+    background-color: greenyellow;
+    color: black;
+}
+
+@keyframes distort {
+    0% {
+        text-shadow: 5px 4px #f44336, -5px -6px #2196f3;
+    }
+    25% {
+        text-shadow: -5px -6px #f44336, 5px 4px #2196f3;
+    }
+    50% {
+        text-shadow: 5px -4px #f44336, -8px 4px #2196f3;
+    }
+    75% {
+        text-shadow: -8px -4px #f44336, -5px -4px #2196f3;
+    }
+    100% {
+        text-shadow: -5px 0 #f44336, 5px -4px #2196f3;
+    }
 }
