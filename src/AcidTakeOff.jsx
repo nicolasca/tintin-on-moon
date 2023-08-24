@@ -1,4 +1,4 @@
-import { Box, CameraControls, CameraShake, Cloud, GizmoHelper, GizmoViewport, Html, Image, OrbitControls, Stars } from '@react-three/drei'
+import { Box, CameraControls, CameraShake, Circle, Cloud, GizmoHelper, GizmoViewport, GradientTexture, Html, Image, Stars } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Debug, Physics, RigidBody } from '@react-three/rapier'
 import { Perf } from 'r3f-perf'
@@ -9,19 +9,22 @@ import Title from './Title'
 import * as THREE from 'three'
 import classes from "./App.module.css"
 import { DEBUG } from './App'
+import { ChromaticAberration, EffectComposer, Noise } from '@react-three/postprocessing'
+import { Leva, useControls } from 'leva'
 
-const TIME_BEFORE_TAKE_OFF = 7000 // in milliseconds
+const TIME_BEFORE_TAKE_OFF = 1000 // in milliseconds
 const MOON_POSITION_Y = 10
 
-const dayColor = new THREE.Color(0x7BBEE8);
-const nightColor = new THREE.Color(0x000000);
-
-export default function TintinTakeOff() {
+export default function AcidTakeOff() {
 
     const [startTime, setStartTime] = useState(0)
     const [timeLeft, setTimeLeft] = useState(null);
     const [isCountDown, setIsCountDown] = useState(false)
-    const [isCameraShakeMounted, setIsCameraShakeMounted] = useState(true)
+
+    const [cameraTarget] = useState(() => new THREE.Vector3())
+    const [smoothedCameraTarget] = useState(() => new THREE.Vector3())
+    const [cameraPosition] = useState(() => new THREE.Vector3())
+    const [smoothedCameraPosition] = useState(() => new THREE.Vector3())
 
     const [rocketAudio] = useState(() => new Audio('/sounds/rocket.mp3'))
     const [countDownAudio] = useState(() => new Audio('/sounds/countdown.m4a'))
@@ -33,12 +36,22 @@ export default function TintinTakeOff() {
     const rocketRef = useRef()
     const cameraControlRef = useRef(null)
     const cameraShakeRef = useRef(null)
+    const isAnimationOver = useRef(null)
+
+    const dayColor = new THREE.Color(0xEC168F);
+    const nightColor = new THREE.Color(0x000000);
 
     useEffect(() => {
         if (isCountDown) {
             timeLeft > 0 && setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
         }
     }, [isCountDown, timeLeft]);
+
+    const { offset } = useControls({
+        offset: {
+            value: [0.01, 0.002]
+        }
+    });
 
 
     // Parameters for take off
@@ -52,12 +65,12 @@ export default function TintinTakeOff() {
         }, 800)
         countDownAudio.currentTime = 0
         countDownAudio.volume = 0.5
-        countDownAudio.play()
+        // countDownAudio.play()
 
         setTimeout(() => {
             rocketAudio.currentTime = 0
             rocketAudio.volume = 0.25
-            rocketAudio.play()
+            // rocketAudio.play()
         }, TIME_BEFORE_TAKE_OFF)
 
         setTimeout(() => {
@@ -71,9 +84,7 @@ export default function TintinTakeOff() {
 
     useEffect(() => {
         const cameraTranslate = async () => {
-            const rocketPosition = rocketRef.current.translation()
-
-            await cameraControlRef.current.setLookAt(7, 6, 7, rocketPosition.x, rocketPosition.y, rocketPosition.z, true)
+            await cameraControlRef.current.setLookAt(7, 6, 8, -3, 0, 0, true)
             startRocket()
         }
 
@@ -98,13 +109,11 @@ export default function TintinTakeOff() {
             const newVelocity = currentVelocity + acc / 5;
             rocketRef.current.setLinvel({ x: 0, y: newVelocity, z: 0 })
 
-            const rocketPosition = rocketRef.current.translation()
-     
-            if (rocketRef.current.translation().y > 60) {
-                setIsCameraShakeMounted(false)
-                cameraControlRef.current.setLookAt(camera.position.x, camera.position.y, camera.position.z, rocketPosition.x, rocketPosition.y, rocketPosition.z, false)
+            if (rocketRef.current.translation().y > 5) {
+                camera.lookAt(rocketRef.current.translation())
+
             } else {
-                cameraControlRef.current.setLookAt(rocketPosition.x + 7, rocketPosition.y + 6, rocketPosition.z + 7, rocketPosition.x, rocketPosition.y, rocketPosition.z, false)
+                camera.position.y = rocketRef.current.translation().y + 6
             }
         }
 
@@ -139,8 +148,8 @@ export default function TintinTakeOff() {
             </>
         }
 
-        <CameraControls
-            makeDefault
+
+        <CameraControls makeDefault
             fov={60}
             near={0.1}
             far={200}
@@ -159,42 +168,41 @@ export default function TintinTakeOff() {
 
         <Title isCountingDown={isCountDown} />
 
-        {(isTakingOff && isCameraShakeMounted) &&
-            <CameraShake ref={cameraShakeRef} maxYaw={0.02} yawFrequency={12} maxPitch={0} maxRoll={0} intensity={0.6} />
-        }
-
-        {isCountDown &&
-            <>
-                <Stars radius={100} depth={20} count={10000} factor={1} saturation={0} fade speed={1} />
-            </>
-        }
-
-        <Cloud position={[-1, 25, -5]} opacity={0.2} />
-        <Cloud position={[-5, 25, 5]} opacity={0.1} />
-        <Cloud position={[5, 40, -5]} speed={0.2} opacity={0.1} />
-        <Cloud position={[1, 40, 0]} speed={0.2} opacity={0.2} />
-        <Cloud position={[10, 55, -5]} opacity={0.2} />
-        <Cloud position={[-5, 55, 5]} opacity={0.1} />
-        <Cloud position={[0, 75, -5]} opacity={0.1} />
-
         <directionalLight castShadow position={[-1, 2, 3]} intensity={1} />
         <ambientLight intensity={0.1} />
 
-        <color attach="background" args={[dayColor]} />
-        <fog attach="fog" args={[dayColor, 15, 40]} />
+        <color attach="background" args={[0xA0F962]} />
+        <fog attach="fog" args={[0xEC168F, 15, 40]} />
 
         {/* <Image url="/moon-butt.png" transparent position={[0, MOON_POSITION_Y, 0]} scale={10} rotation={[0, 0, -0.5]} /> */}
 
 
         <Physics timeStep="vary">
-            {/* <Debug /> */}
-            <Ground />
-            <RigidBody ref={rocketRef} colliders="cuboid" scale={0.3}>
-
-                <Rocket />
+            <RigidBody type='fixed'>
+                <Circle
+                    receiveShadow
+                    args={[7, 40]}
+                    rotation-x={-Math.PI * 0.5}
+                >
+                    <meshBasicMaterial>
+                        <GradientTexture
+                            stops={[0, 0.8]} // As many stops as you want
+                            colors={['#EC168F', '#0001EF']} // Colors need to match the number of stops
+                            size={1024} // Size is optional, default = 1024
+                        />
+                    </meshBasicMaterial>
+                </Circle>
 
             </RigidBody>
+
+            <RigidBody ref={rocketRef} colliders="cuboid" scale={0.3}>
+                <Rocket />
+            </RigidBody>
         </Physics>
+
+        <EffectComposer>
+            <ChromaticAberration offset={offset} />
+        </EffectComposer>
 
     </>
 }

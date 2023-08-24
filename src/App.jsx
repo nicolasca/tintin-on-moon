@@ -2,6 +2,7 @@ import { Canvas, useFrame } from "@react-three/fiber"
 import { useEffect, useState } from "react"
 import classes from "./App.module.css"
 import TintinTakeOff from "./TintinTakeOff"
+import AcidTakeOff from "./AcidTakeOff"
 
 export const DEBUG = true
 
@@ -21,12 +22,13 @@ export default function App() {
                         className={`${classes.buttonTakeOff} + ${classes.regularStyle}`}
                         onClick={() => setIsTintinTakingOff(true)}
                     >
-                        Tintin style take off
+                        Tintin on the Moon: classical style
                     </button>
                     <button
                         className={`${classes.buttonTakeOff} + ${classes.acidStyle}`}
+                        onClick={() => setIsOnAcidTakingOff(true)}
                     >
-                        Tintin on acid style take off
+                       Tintin on the Moon: acid style
                     </button>
                 </div>
             }
@@ -40,9 +42,11 @@ export default function App() {
             >
 
                 <color attach="background" args={['#000']} />
-                {
-                    isTintinTakingOff &&
+                {isTintinTakingOff &&
                     <TintinTakeOff />
+                }
+                 {isOnAcidTakingOff &&
+                    <AcidTakeOff />
                 }
             </Canvas>
         </>

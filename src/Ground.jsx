@@ -2,7 +2,7 @@ import { Box, Circle } from "@react-three/drei";
 import { RigidBody } from "@react-three/rapier";
 import * as THREE from "three";
 
-export default function Ground() {
+export default function Ground({color="#C1AD66"}) {
     return (
         <RigidBody type='fixed'>
             <Circle
@@ -11,7 +11,7 @@ export default function Ground() {
                 rotation-x={-Math.PI * 0.5}
             >
                 <meshStandardMaterial
-                    color="#C1AD66"
+                    color={color}
                 />
             </Circle>
         </RigidBody>
